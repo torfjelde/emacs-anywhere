@@ -3,7 +3,7 @@
 set -e
 
 EA_PATH=$HOME/.emacs_anywhere
-EA_URL='https://github.com/zachcurry/emacs-anywhere.git'
+EA_URL='https://github.com/torfjelde/emacs-anywhere.git'
 
 err () { echo -e "Error: $@" 1>&2; }
 
