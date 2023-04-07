@@ -2,6 +2,9 @@
   "Functions run after entering Emacs Anywhere session.
 Functions are run with args APP-NAME WINDOW-TITLE X Y WIDTH HEIGHT")
 
+(defvar ea-delete-frame-hook nil
+  "Functions run after exiting Emacs Anywhere session.")
+
 (defvar ea-on t)
 (defvar ea-copy t)
 (defvar ea-paste t)
@@ -27,12 +30,20 @@ Functions are run with args APP-NAME WINDOW-TITLE X Y WIDTH HEIGHT")
   (write-region nil nil "/tmp/eaclipboard"))
 
 (defun ea--delete-frame-handler (_frame)
+  ;; Remove hook so it's not run on subsequent frames.
   (remove-hook 'delete-frame-functions 'ea--delete-frame-handler)
+
+  ;; Run the special hooks if `ea-on'.
+  (when ea-on
+    (run-hook-with-args 'ea-delete-frame-hook _frame))
+
+  ;; Copy the contents of the buffer to the clipboard.
   (when (and ea-on ea-copy (get-buffer ea--buffer-name))
     (switch-to-buffer ea--buffer-name)
     (cond
      (ea--osx (ea--osx-copy-to-clip))
      (ea--gnu-linux (ea--gnu-linux-copy-to-clip))))
+  ;; Kill buffer if still open.
   (when ea-on (kill-buffer ea--buffer-name))
   (shell-command
    (format (concat "echo export EA_ABORT=%s\";\""
